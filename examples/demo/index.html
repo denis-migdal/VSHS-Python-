@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>VSHS - Example</title>
+		<style type="text/css">
+			textarea {
+				resize: none;
+				width: 300px;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>Send Data</h2>
+		<form>
+			<input type="text" name="message"/>
+			<input type="submit" value="Send"/>
+		</form>
+
+		<h2>Received Data (stream)</h2>
+
+		<textarea rows=10 disabled></textarea>
+
+		<script type="text/javascript">
+
+			// send data
+			let form = document.querySelector('form');
+
+			form.addEventListener('submit', async (ev) => {
+
+				ev.preventDefault();
+
+				const formData = new FormData(form);
+
+				fetch('http://localhost:8080/demo/website', {
+					method: "POST",
+					body: JSON.stringify(Object.fromEntries(formData))
+				})
+			})
+
+
+			// get data
+			let textarea = document.querySelector('textarea');
+
+			textarea.value = "";
+
+			console.warn('Start listening');
+
+			const evtSource = new EventSource("http://localhost:8080/demo/website");
+
+			evtSource.addEventListener('message', event => {
+
+				let data = JSON.parse(event.data);
+				let {timestamp, message} = data;
+				textarea.value = `[${timestamp}] ${message}\n` + textarea.value;
+			});
+		</script>
+	</body>
+</html>
