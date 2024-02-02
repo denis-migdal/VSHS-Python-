@@ -159,7 +159,9 @@ def buildRequestHandler( routes: Routes):
 
 			if isinstance(answer, SSEResponse):
 
-				response = web.StreamResponse(headers=CORS_HEADERS)
+				# "content-type": "text/event-stream"
+
+				response = web.StreamResponse(headers={"content-type": "text/event-stream", **CORS_HEADERS})
 				await response.prepare(request)
 				answer._setControler(response)
 				await answer.run()
