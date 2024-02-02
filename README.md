@@ -14,30 +14,25 @@ curl -X $HTTP_METHOD -d "$BODY" -w "\n\nStatus code:%{http_code}\n" "$URL"
 
 To create a new HTTP server, just call the function `startHTTPServer()`:
 ```python
-# Set the current working directory (cwd)
-import os
-os.chdir(os.path.dirname(__file__))
-
-
+import asyncio
 from VSHS import startHTTPServer
 
-startHTTPServer(hostname="localhost", port=8080, routes="/routes")
+asyncio.run( startHTTPServer(hostname="localhost", port=8080, routes="/routes") )
 ```
 
 ### Routes and handlers
 
 The `routes` parameter is a directory containing the differents routes your HTTP server will answer to. In this directory, each subdirectory corresponds to a route, and each files, to a supported HTTP method for this route.
 
-For example, the file `./routes/foo/GET.ts` defines how your server will answer to a `GET /foo` HTTP query. In order to do so, `GET.ts` default exports an asynchronous function whose return value is the answer to the received HTTP query.
+For example, the file `./routes/hello-world/GET.ts` defines how your server will answer to a `GET /hello-world` HTTP query. In order to do so, `GET.py` default exports an asynchronous function whose return value is the answer to the received HTTP query.
 
-```typescript
-export default async function() {
-	return {message: "Hello World"};
-}
+```python
+async def default(url, body, route):
+	return {"message": "Hello World"}
 ```
 
 ```shell
-$ curl -w "\n" -X GET http://localhost:8080/foo
+$ curl -w "\n" -X GET http://localhost:8080/hello-world
 {
 	"message": "Hello World"
 }
