@@ -15,12 +15,14 @@ from typing import Callable, TypeAlias
 import asyncio
 from aiohttp import web
 
+def rootDir():
+	return os.path.dirname( sys.modules['__main__'].__file__ )
 
 # https://docs.aiohttp.org/en/stable/web_lowlevel.html
 async def startHTTPServer(hostname: str = "localhost", port: int = 8080, routes: str = "/routes"):
 
 	if routes[0] == "/": # Absolute path
-		routes = os.path.dirname( sys.modules['__main__'].__file__ ) + routes
+		routes = rootDir() + routes
 
 	routesHandlers = loadAllRoutesHandlers(routes)
 	requestHandler = buildRequestHandler(routesHandlers)
