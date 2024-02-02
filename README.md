@@ -164,5 +164,5 @@ data: {"count":2}
 We also provide an additionnal demonstration in `./examples/demo/`.
 
 This webpage sends two HTTP queries :
-- `GET /messages/website` to receive Server-Sent Events at each modification of `./examples/messages.txt`.
-- `POST /messages/website` to append a new line into `./examples/messages.txt` at each submission of the formular.
+- `GET /demo/website` to receive Server-Sent Events at each modification of `./examples/messages.txt`.
+- `POST /demo/website` to append a new line into `./examples/messages.txt` at each submission of the formular.
