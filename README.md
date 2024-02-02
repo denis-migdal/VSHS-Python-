@@ -40,28 +40,21 @@ $ curl -w "\n" -X GET http://localhost:8080/hello-world
 
 ### Handler parameters
 
-In fact, the handler function takes a `HandlerParams` parameter:
-```typescript
-import { HandlerParams } from "VSHS";
+In fact, the handler function takes 3 parameters:
+```python
+from VSHS import get_query
 
-export default async function(
-		{
-			url,	  // URL: the requested URL
-			// ( cf https://developer.mozilla.org/en-US/docs/Web/API/URL )
-			body,	  // any|null: JSON.parse( query.body ) or null if no body.
-			route: {// cf next section
-				path  // string
-				vars  // Record<string, string>
-			}
-		}: HandlerParams			
-	) {
+async def default(
+					url,	  # yarl.URL: the requested URL
+					body,	  # any|None: json.loads( body ) or None if empty body.
+					route     # Route: cf next section
+				):
 
 	return {
-		urlParams : Object.fromEntries(url.searchParams.entries()),
-		bodyParams: body,
-		pathParams: vars
-	};
-}
+		"urlParams" : get_query(url),
+		"bodyParams": body,
+		"pathParams": route.vars # dict[string, string]
+	}
 ```
 
 ```shell
@@ -83,7 +76,7 @@ $ curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
 
 The `route` parameter has two components:
 
-- `path` is the route path, e.g. `/foo/{name}/GET.ts`. Letters in between braces represents a variable, corresponding to set of letters (except `/`). Hence a single route path can match several URL, e.g.:
+- `path` is the route path, e.g. `/params/{name}/GET.ts`. Letters in between braces represents a variable, corresponding to set of letters (except `/`). Hence a single route path can match several URL, e.g.:
   - `/params/faa`
   - `/params/fuu`
 

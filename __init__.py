@@ -87,6 +87,16 @@ def match(regex, uri):
 
 	return result.groupdict()
 
+class Route:
+
+	def __init__(self, handler: Handler, path: str, vars: dict[str,str]):
+		self.handler = handler
+		self.path = path
+		self.vars = vars
+
+	handler: Handler
+	path: str
+	vars: dict[str, str]
 
 def getRouteHandler(regexes, method, url):
 
@@ -95,11 +105,7 @@ def getRouteHandler(regexes, method, url):
 	for route in regexes:
 		vars = match(route[0], curRoute)
 		if vars != False:
-			return {
-				"handler": route[1],
-				"path": route[2],
-				"vars": vars
-			}
+			return Route(handler=route[1], path=route[2], vars=vars)
 
 	return None
 
@@ -129,7 +135,7 @@ def buildRequestHandler( routes: Routes):
 			if request.body_exists:
 				body = await request.json()
 
-			answer = await route['handler'](url=request.url, body=body, route=route);
+			answer = await route.handler(url=request.url, body=body, route=route);
 
 			# #if(answer instanceof SSEResponse)
 #				#	return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
@@ -149,6 +155,20 @@ def buildRequestHandler( routes: Routes):
 			return web.Response(status=error_code, text=str(e), headers=CORS_HEADERS );
 
 	return handler
+
+
+# https://stackoverflow.com/questions/67578472/converting-multidict-to-dict-with-duplicate-keys-values-as-a-list
+def get_query(url):
+
+	multi_dict = url.query
+
+	new_dict = {}
+	for k in set(multi_dict.keys()):
+		k_values = multi_dict.getall(k)
+		new_dict[k] = k_values if len(k_values) > 1 else k_values[0]
+
+	return new_dict
+
 
 # http.server version
 #def buildRequestHandler( routes: Routes ):
