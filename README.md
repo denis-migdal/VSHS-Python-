@@ -124,27 +124,29 @@ Status code: 403
 ### Server-Sent Events
 
 If you want to return [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events), you just have to return an instance of `SSEResponse`:
-```typescript
-import { SSEResponse } from "../../../HTTPServer.ts";
+```python
+import asyncio
+import traceback
+from VSHS import SSEResponse
 
-export default async function() {
+async def run(self):
 
-	return new SSEResponse( async (self) => {
+	try:
+		i = 0
+		while True:
+			await asyncio.sleep(1)
+			i += 1
+			await self.send(data={"count": i}, event="event_name")
 
-		self.onConnectionClosed = () => {
-			clearInterval(timer);
-		}
+	except Exception as e:
+		print("Connection closed")
+		traceback.print_exc()
 
-		let i = 0;
-		let timer = setInterval( () => {
-			self.send({count: i++}, "event_name")
-		}, 1000);
-
-	});
-}
+async def default(url, body, route):
+	return SSEResponse( run )
 ```
 
-The method `send(message: any, event?: string)` sends a new event to the client. Once the client closes the connection, the callback registered in `self.onConnectionClosed` is called.
+The method `send(message: any, event?: str)` sends a new event to the client. Once the client closes the connection, an exception is raised:
 
 ```bash
 $ curl -X GET http://localhost:8080/server-sent-events

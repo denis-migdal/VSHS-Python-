@@ -114,6 +114,24 @@ CORS_HEADERS = {
 	"Access-Control-Allow-Methods": "POST, GET, PATCH, PUT, OPTIONS, DELETE"
 }
 
+class SSEResponse:
+
+	def __init__(self, run):
+		self.__run = run
+
+	def _setControler(self, controler):
+		self.__controler = controler
+
+	async def run(self):
+		await self.__run(self)
+
+	async def send(self, data, event: str = None):
+		text = f"data: {json.dumps(data)}\n\n"
+		if event is not None:
+			text = f"event: {event}\n{text}"
+
+		await self.__controler.write(text.encode('utf-8'))
+
 def buildRequestHandler( routes: Routes):
 
 	regexes = []
@@ -137,8 +155,13 @@ def buildRequestHandler( routes: Routes):
 
 			answer = await route.handler(url=request.url, body=body, route=route);
 
-			# #if(answer instanceof SSEResponse)
-#				#	return new Response(answer._body, {headers: {"content-type": "text/event-stream", ...CORS_HEADERS} } )
+			if isinstance(answer, SSEResponse):
+
+				response = web.StreamResponse(headers=CORS_HEADERS)
+				await response.prepare(request)
+				answer._setControler(response)
+				await answer.run()
+				return response
 
 			return web.Response(text=json.dumps(answer, indent=2),
 								content_type="application/json",
