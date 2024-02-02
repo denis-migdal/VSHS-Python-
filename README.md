@@ -94,10 +94,9 @@ The `route` parameter has two components:
 
 If an exception is thrown inside an handlers, the server will automatically send an HTTP 500 status code (Internal Server Error).
 
-```typescript
-export default async function() {
-	throw new Error('Oups...');
-}
+```python
+async def default(url, body, route):
+	raise Exception('Oups...')
 ```
 
 ```bash
@@ -108,12 +107,11 @@ Status code: 500
 ```
 
 You can send other HTTP status code, by throwing an instance of `HTTPError`:
-```typescript
-import {HTTPError} from "VSHS";
+```python
+from VSHS import HTTPError
 
-export default async function() {
-	throw new HTTPError(403, "Forbidden Access");
-}
+async def default(url, body, route):
+	raise HTTPError(403, "Forbidden Access")
 ```
 
 ```bash
