@@ -7,6 +7,7 @@ from importlib.machinery import SourceFileLoader
 import re
 import json
 import urllib
+from yarl import URL
 from http import server
 
 from typing import Callable, TypeAlias
@@ -179,7 +180,7 @@ def buildRequestHandler( routes: Routes):
 			else:
 				traceback.print_exc()
 
-			error_url = new URL(f"/errors/{error_code}", request.url);
+			error_url = URL.build(path=f"/errors/{error_code}", host=request.url.host, port=request.url.port);
 			route = getRouteHandler(regexes, "GET", error_url);
 			if route is not None:
 				try:
