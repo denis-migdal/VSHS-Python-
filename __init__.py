@@ -179,6 +179,15 @@ def buildRequestHandler( routes: Routes):
 			else:
 				traceback.print_exc()
 
+			error_url = new URL(f"/errors/{error_code}", request.url);
+			route = getRouteHandler(regexes, "GET", error_url);
+			if route is not None:
+				try:
+					answer = await route.handler(url=request.url, body= e.message, route=route);
+					return web.Response(text=answer, content_type="text/plain", headers=CORS_HEADERS );
+				except Exception as e:
+					console.error(e);
+
 			return web.Response(status=error_code, text=str(e), headers=CORS_HEADERS );
 
 	return handler

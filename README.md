@@ -120,6 +120,8 @@ Forbidden Access
 Status code: 403
 ```
 
+💡 If it exists, errors are redirected to the `/errors/{error_code}` route, with `body` containing the error message.
+
 ### Server-Sent Events
 
 If you want to return [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events), you just have to return an instance of `SSEResponse`:
