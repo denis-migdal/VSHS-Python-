@@ -149,8 +149,8 @@ def buildRequestHandler( routes: Routes):
 
 			route = getRouteHandler(regexes, request.method, request.url)
 			if route is None:
-				return web.Response(status=404, text="Not found", headers=CORS_HEADERS)
-
+				raise HTTPError(404, "Not Found")
+				
 			body = None
 			if request.body_exists:
 				body = await request.json()
@@ -173,11 +173,11 @@ def buildRequestHandler( routes: Routes):
 
 		except Exception as e:
 
-			traceback.print_exc()
-
 			error_code = 500;
 			if isinstance(e, HTTPError):
 				error_code = e.error_code;
+			else:
+				traceback.print_exc()
 
 			return web.Response(status=error_code, text=str(e), headers=CORS_HEADERS );
 
