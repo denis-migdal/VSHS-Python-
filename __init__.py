@@ -185,7 +185,7 @@ def buildRequestHandler( routes: Routes):
 			if route is not None:
 				try:
 					answer = await route.handler(url=request.url, body= e.message, route=route);
-					return web.Response(text=answer, content_type="text/plain", headers=CORS_HEADERS );
+					return web.Response(status=error_code, text=answer, content_type="text/plain", headers=CORS_HEADERS );
 				except Exception as e:
 					console.error(e);
 
