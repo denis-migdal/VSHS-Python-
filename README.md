@@ -133,6 +133,34 @@ Status code: 403
 
 💡 If it exists, errors are redirected to the `/errors/{error_code}` route, with `body` containing the error message.
 
+### Static ressources
+
+You can also provide a directory containing static files 
+
+```python
+import asyncio
+from VSHS import startHTTPServer, rootDir
+
+# Put the bytecode-cache in the same directory to keep the project clean
+import sys
+sys.pycache_prefix = rootDir() + "/__pycache__"
+
+asyncio.run( startHTTPServer(hostname="localhost",
+							 port=8080,
+							 routes="/routes",
+							 static="/assets") )
+```
+
+```shell
+curl -w "\n\nType: %{content_type}\n" -X GET http://localhost:8080/
+```
+***Output:***
+```
+<b>Hello world</b>
+
+Type: text/html
+```
+
 ### Server-Sent Events
 
 If you want to return [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events), you just have to return an instance of `SSEResponse`:

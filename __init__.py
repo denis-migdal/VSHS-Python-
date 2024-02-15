@@ -20,13 +20,18 @@ def rootDir():
 	return os.path.dirname( sys.modules['__main__'].__file__ )
 
 # https://docs.aiohttp.org/en/stable/web_lowlevel.html
-async def startHTTPServer(hostname: str = "localhost", port: int = 8080, routes: str = "/routes"):
+async def startHTTPServer(hostname: str = "localhost",
+						  port: int = 8080,
+						  routes: str = "/routes",
+						  static: str|None = None):
 
 	if routes[0] == "/": # Absolute path
 		routes = rootDir() + routes
+	if static is not None and static[0] == "/": # Absolute path
+		static = rootDir() + static
 
 	routesHandlers = loadAllRoutesHandlers(routes)
-	requestHandler = buildRequestHandler(routesHandlers)
+	requestHandler = buildRequestHandler(routesHandlers, static)
 
 	server = web.Server(requestHandler)
 	runner = web.ServerRunner(server)
@@ -135,7 +140,10 @@ class SSEResponse:
 
 		await self.__controler.write(text.encode('utf-8'))
 
-def buildRequestHandler( routes: Routes):
+import aiofiles
+from mimetypes import types_map
+
+def buildRequestHandler( routes: Routes, static: str|None):
 
 	regexes = []
 	for route in routes:
@@ -150,8 +158,37 @@ def buildRequestHandler( routes: Routes):
 
 			route = getRouteHandler(regexes, request.method, request.url)
 			if route is None:
-				raise HTTPError(404, "Not Found")
+				if static is None:
+					raise HTTPError(404, "Not Found")
 				
+				filepath = f"{static}/{request.url.path}"
+
+				try:
+					if os.path.isdir(filepath):
+						filepath = f"{filepath}/index.html"
+					async with aiofiles.open(filepath, mode='r') as f:
+						content = await f.read()
+				except Exception as e:
+					if isinstance(e, FileNotFoundError):
+						raise HTTPError(404, "Not Found")
+					if isinstance(e, PermissionError):
+						raise HTTPError(404, "Forbidden")
+					
+					raise HTTPError(500, str(e));
+
+				parts = filepath.split('.');
+				ext   = "."+parts[-1];
+
+				content_type = "text/plain"
+				if ext in types_map:
+					content_type = types_map[ext]
+
+				# TODO function...
+				return web.Response(text=content,
+									content_type=content_type,
+									headers=CORS_HEADERS)
+
+
 			body = None
 			if request.body_exists:
 				body = await request.json()
@@ -184,10 +221,10 @@ def buildRequestHandler( routes: Routes):
 			route = getRouteHandler(regexes, "GET", error_url);
 			if route is not None:
 				try:
-					answer = await route.handler(url=request.url, body= e.message, route=route);
+					answer = await route.handler(url=request.url, body= str(e), route=route);
 					return web.Response(status=error_code, text=answer, content_type="text/plain", headers=CORS_HEADERS );
 				except Exception as e:
-					console.error(e);
+					traceback.print_exc()
 
 			return web.Response(status=error_code, text=str(e), headers=CORS_HEADERS );
 
