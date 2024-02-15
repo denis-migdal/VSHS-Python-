@@ -36,7 +36,10 @@ async def default(url, body, route):
 ```
 
 ```shell
-$ curl -w "\n" -X GET http://localhost:8080/hello-world
+curl -w "\n" -X GET http://localhost:8080/hello-world
+```
+**Output:**
+```
 {
 	"message": "Hello World"
 }
@@ -62,7 +65,10 @@ async def default(
 ```
 
 ```shell
-$ curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
+curl -w "\n" -X POST -d '{"body": "A"}' http://localhost:8080/params/C?url=B
+```
+***Output:***
+```
 {
     "urlParams": {
         "url": "B"
@@ -97,9 +103,11 @@ If an exception is thrown inside an handlers, the server will automatically send
 async def default(url, body, route):
 	raise Exception('Oups...')
 ```
-
-```bash
-$ curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/exception
+```shell
+curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/exception
+```
+***Output:***
+```
 Oups...
 
 Status code: 500
@@ -113,8 +121,11 @@ async def default(url, body, route):
 	raise HTTPError(403, "Forbidden Access")
 ```
 
-```bash
-$ curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/http-error
+```shell
+curl -w "\n\nStatus code: %{http_code}\n" -X GET http://localhost:8080/http-error
+```
+***Output:***
+```
 Forbidden Access
 
 Status code: 403
@@ -149,8 +160,11 @@ async def default(url, body, route):
 
 The method `send(message: any, event?: str)` sends a new event to the client. Once the client closes the connection, an exception is raised:
 
-```bash
-$ curl -X GET http://localhost:8080/server-sent-events
+```shell
+curl -X GET http://localhost:8080/server-sent-events
+```
+***Output:***
+```
 event: event_name
 data: {"count":0}
 
