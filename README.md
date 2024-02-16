@@ -188,7 +188,7 @@ We automatically perform the following conversions on the query body:
 | ----------------------------------- | --------------- |
 | No body                             | `None`          |
 | `text/plain`                        | `str` or `dict` |
-| `application/x-www-form-urlencoded` | `MultiDict`     |
+| `application/x-www-form-urlencoded` | `dict`          |
 | `application/json`                  | `dict`          |
 | `application/octet-stream`          | `bytes`         |
 | others                              | `Blob`          |

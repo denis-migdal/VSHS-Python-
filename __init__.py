@@ -151,10 +151,10 @@ class Blob:
 		self._content = content
 
 	async def bytes(self):
-		return this._content
+		return self._content
 
 	async def text(self):
-		return this._content.decode('utf8')
+		return self._content.decode('utf8')
 
 
 
@@ -163,7 +163,9 @@ async def buildAnswer(request,
 					  status   : int = 200,
 					  mime     : str|None = None):
 
-	if isinstance(response, SSEResponse): 
+	if response is None:
+		mime = None
+	elif isinstance(response, SSEResponse): 
 		stream = web.StreamResponse(headers={"content-type": "text/event-stream", **CORS_HEADERS})
 		await stream.prepare(request)
 		response._setControler(stream)
@@ -178,8 +180,8 @@ async def buildAnswer(request,
 	elif isinstance(response, bytes):
 		mime = mime or "application/octet-stream";
 	elif isinstance(response, Blob):
-		response = await response.bytes();
 		mime = mime or response.type or "application/octet-stream"
+		response = await response.bytes();
 	else:
 		response = json.dumps(response, indent=4).encode("utf8")
 		mime = "application/json";
@@ -196,7 +198,12 @@ async def parseBody(request):
 		return None;
 
 	if 'Content-Type' not in request.headers:
-		return await request.content;
+
+		content = await request.read()
+		if len(content) == 0:
+			return None
+
+		return content;
 
 	mime = request.headers['Content-Type'].split(';')[0];
 
@@ -213,10 +220,14 @@ async def parseBody(request):
 			if mime == "application/json":
 				raise e;
 			if mime == "application/x-www-form-urlencoded":
-				return URL.build(query_string=text).query
+				return get_query(URL.build(query_string=text))
 			return text;
 
-	return Blob( await request.content(), {type: mime});
+	content = await request.read()
+	if len(content) == 0:
+		return None
+
+	return Blob( content, type=mime);
 
 import aiofiles
 from mimetypes import types_map
@@ -272,9 +283,7 @@ def buildRequestHandler( routes: Routes, static: str|None):
 
 			error_code = 500;
 			if isinstance(e, HTTPError):
-				error_code = e.error_code;
-			else:
-				traceback.print_exc()
+				error_code = e.error_code
 
 			error_url = URL.build(path=f"/errors/{error_code}", host=request.url.host, port=request.url.port);
 			route = getRouteHandler(regexes, "GET", error_url);
