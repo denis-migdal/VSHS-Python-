@@ -133,6 +133,34 @@ Status code: 403
 
 💡 If it exists, errors are redirected to the `/errors/{error_code}` route, with `body` containing the error message.
 
+
+### Mime-type
+
+#### In the response
+
+We infer the mime type from the handler return value :
+
+| Return        | Mime                                              |
+| ------------- | ------------------------------------------------- |
+| `str`         | `text/plain`                                      |
+| `bytes`       | `application/octet-stream`                        |
+| `Blob`        | `blob.type`<br/>or<br/>`application/octet-stream` |
+| `any`         | `application/json`                                |
+| `SSEResponse` | `text/event-stream`                               |
+
+💡 We provide a `Blob` class to mimic JS `Blob` :
+
+```python
+blob = Blob(content, type="text/plain")
+
+await blob.text()
+await blob.bytes()
+```
+
+
+#### In the query
+
+
 ### Static ressources
 
 You can also provide a directory containing static files 

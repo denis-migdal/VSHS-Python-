@@ -140,6 +140,51 @@ class SSEResponse:
 
 		await self.__controler.write(text.encode('utf-8'))
 
+class Blob:
+	
+	type: str
+	_content: bytes
+
+	def __init__(self, content, type: str = ""):
+		self.type = type
+		self._content = content
+
+	async def bytes(self):
+		return this._content
+
+	async def text(self):
+		return this._content.decode('utf8')
+
+
+
+async def buildAnswer(request,
+					  response,
+					  status   : int = 200,
+					  mime     : str|None = None):
+
+	if isinstance(response, SSEResponse): 
+		stream = web.StreamResponse(headers={"content-type": "text/event-stream", **CORS_HEADERS})
+		await stream.prepare(request)
+		response._setControler(stream)
+		await response.run()
+		return stream
+	elif isinstance(response, str): 
+		mime = mime or "text/plain"
+		response = response.encode('utf8')
+	elif isinstance(response, bytes):
+		mime = mime or "application/octet-stream";
+	elif isinstance(response, Blob):
+		response = await response.bytes();
+		mime = mime or response.type or "application/octet-stream"
+	else:
+		response = json.dumps(response, indent=4).encode("utf8")
+		mime = "application/json";
+
+	return web.Response(status=status,
+						body=response,
+						content_type=mime,
+						headers=CORS_HEADERS)
+
 import aiofiles
 from mimetypes import types_map
 
@@ -183,31 +228,14 @@ def buildRequestHandler( routes: Routes, static: str|None):
 				if ext in types_map:
 					content_type = types_map[ext]
 
-				# TODO function...
-				return web.Response(text=content,
-									content_type=content_type,
-									headers=CORS_HEADERS)
-
+				return await buildAnswer(request, content, mime=content_type)
 
 			body = None
 			if request.body_exists:
 				body = await request.json()
 
 			answer = await route.handler(url=request.url, body=body, route=route);
-
-			if isinstance(answer, SSEResponse):
-
-				# "content-type": "text/event-stream"
-
-				response = web.StreamResponse(headers={"content-type": "text/event-stream", **CORS_HEADERS})
-				await response.prepare(request)
-				answer._setControler(response)
-				await answer.run()
-				return response
-
-			return web.Response(text=json.dumps(answer, indent=2),
-								content_type="application/json",
-								headers=CORS_HEADERS)
+			return await buildAnswer(request, anwser)
 
 		except Exception as e:
 
@@ -219,14 +247,14 @@ def buildRequestHandler( routes: Routes, static: str|None):
 
 			error_url = URL.build(path=f"/errors/{error_code}", host=request.url.host, port=request.url.port);
 			route = getRouteHandler(regexes, "GET", error_url);
+			answer = str(e)
 			if route is not None:
 				try:
-					answer = await route.handler(url=request.url, body= str(e), route=route);
-					return web.Response(status=error_code, text=answer, content_type="text/plain", headers=CORS_HEADERS );
+					answer = await route.handler(url=request.url, body= str(e), route=route)
 				except Exception as e:
 					traceback.print_exc()
 
-			return web.Response(status=error_code, text=str(e), headers=CORS_HEADERS );
+			return await buildAnswer(request, str(e), status=error_code)
 
 	return handler
 
