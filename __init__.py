@@ -171,6 +171,9 @@ async def buildAnswer(request,
 	elif isinstance(response, str): 
 		mime = mime or "text/plain"
 		response = response.encode('utf8')
+	elif isinstance(response, MultiDict):
+		mime = 'application/x-www-form-urlencoded';
+		response = URL.build(query=response).query_string
 	elif isinstance(response, bytes):
 		mime = mime or "application/octet-stream";
 	elif isinstance(response, Blob):

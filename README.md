@@ -159,6 +159,7 @@ We infer the mime type from the handler return value :
 | Return        | Mime                                              |
 | ------------- | ------------------------------------------------- |
 | `str`         | `text/plain`                                      |
+| `MultiDict`   | ``                                                |
 | `bytes`       | `application/octet-stream`                        |
 | `Blob`        | `blob.type`<br/>or<br/>`application/octet-stream` |
 | `any`         | `application/json`                                |
