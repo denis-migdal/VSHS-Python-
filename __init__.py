@@ -198,11 +198,11 @@ async def parseBody(request):
 	if 'Content-Type' not in request.headers:
 		return await request.content;
 
-	mime = request.headers['Content-Type'];
+	mime = request.headers['Content-Type'].split(';')[0];
 
 	if mime in ("text/plain", "application/json", "application/x-www-form-urlencoded"):
 
-		text = await request.text;
+		text = await request.text();
 		if text == "":
 			return None;
 
@@ -216,7 +216,7 @@ async def parseBody(request):
 				return URL.build(query_string=text).query
 			return text;
 
-	return Blob( await request.content, {type: mime});
+	return Blob( await request.content(), {type: mime});
 
 import aiofiles
 from mimetypes import types_map
