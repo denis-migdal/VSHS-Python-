@@ -159,7 +159,7 @@ We infer the mime type from the handler return value :
 | Return        | Mime                                              |
 | ------------- | ------------------------------------------------- |
 | `str`         | `text/plain`                                      |
-| `MultiDict`   | ``                                                |
+| `MultiDict`   | `application/x-www-form-urlencoded`               |
 | `bytes`       | `application/octet-stream`                        |
 | `Blob`        | `blob.type`<br/>or<br/>`application/octet-stream` |
 | `any`         | `application/json`                                |
@@ -175,6 +175,40 @@ await blob.bytes()
 ```
 
 #### In the query
+
+We automatically perform the following conversions on the query body:
+
+| Mime                                | Result          |
+| ----------------------------------- | --------------- |
+| No body                             | `None`          |
+| `text/plain`                        | `str` or `dict` |
+| `application/x-www-form-urlencoded` | `MultiDict`     |
+| `application/json`                  | `dict`          |
+| `application/octet-stream`          | `bytes`         |
+| others                              | `Blob`          |
+
+⚠ For `text/plain` and `application/x-www-form-urlencoded`, we first try to parse it with `JSON.parse()`.
+
+💡 The default mime-types set by the client are :
+
+| Source (JS)       | Mime-type                           |
+| ----------------- | ----------------------------------- |
+| `string`          | `text/plain`                        |
+| `URLSearchParams` | `application/x-www-form-urlencoded` |
+| `FormData`        | `application/x-www-form-urlencoded` |
+| `Uint8Array`      | None                                |
+| `Blob`            | `blob.type` or none                 |
+| `curl -d`         | `application/x-www-form-urlencoded` |
+
+💡 To provide an explicit mime-type in the query :
+
+```typescript
+fetch('...', {body: ..., headers: {"Content-Type", "..."})
+```
+
+```shell
+curl -d "..." -H "Content-Type: ..."
+```
 
 ### Static ressources
 

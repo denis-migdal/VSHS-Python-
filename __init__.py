@@ -188,6 +188,35 @@ async def buildAnswer(request,
 						content_type=mime,
 						headers=CORS_HEADERS)
 
+
+async def parseBody(request):
+
+	if not request.body_exists:
+		return None;
+
+	if 'Content-Type' not in request.headers:
+		return await request.content;
+
+	mime = request.headers['Content-Type'];
+
+	if mime in ("text/plain", "application/json", "application/x-www-form-urlencoded"):
+
+		text = await request.text;
+		if text == "":
+			return None;
+
+		try:
+			return json.loads(text);
+		except Exception as e:
+	
+			if mime == "application/json":
+				raise e;
+			if mime == "application/x-www-form-urlencoded":
+				return URL.build(query_string=text).query
+			return text;
+
+	return Blob( await request.content, {type: mime});
+
 import aiofiles
 from mimetypes import types_map
 
@@ -233,9 +262,7 @@ def buildRequestHandler( routes: Routes, static: str|None):
 
 				return await buildAnswer(request, content, mime=content_type)
 
-			body = None
-			if request.body_exists:
-				body = await request.json()
+			body = await parseBody(request)
 
 			answer = await route.handler(url=request.url, body=body, route=route);
 			return await buildAnswer(request, anwser)
