@@ -1,0 +1,5 @@
+{
+  "tasks": {
+    "test" : "deno test --allow-net https://raw.githubusercontent.com/denis-migdal/VSHS-TS-/master/examples/tests/examples.test.ts"
+  }
+}

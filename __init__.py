@@ -8,6 +8,7 @@ import re
 import json
 import urllib
 from yarl import URL
+from multidict import MultiDict
 from http import server
 
 from typing import Callable, TypeAlias
@@ -265,7 +266,7 @@ def buildRequestHandler( routes: Routes, static: str|None):
 			body = await parseBody(request)
 
 			answer = await route.handler(url=request.url, body=body, route=route);
-			return await buildAnswer(request, anwser)
+			return await buildAnswer(request, answer)
 
 		except Exception as e:
 
